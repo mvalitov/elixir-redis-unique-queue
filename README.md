@@ -18,7 +18,9 @@ and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/redis_unique_queue](https://hexdocs.pm/redis_unique_queue).
 
 ##Usage
+
 ___
+
 Queue creation
 
     queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
