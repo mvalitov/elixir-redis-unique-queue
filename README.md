@@ -4,8 +4,7 @@ Is the elixir-implementation of ruby-gem [ruby-redis-unique-queue](https://githu
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `redis_unique_queue` to your list of dependencies in `mix.exs`:
+Add `redis_unique_queue` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -13,9 +12,7 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/redis_unique_queue](https://hexdocs.pm/redis_unique_queue).
+Documentation [https://hexdocs.pm/redis_unique_queue](https://hexdocs.pm/redis_unique_queue).
 
 ## Usage
 

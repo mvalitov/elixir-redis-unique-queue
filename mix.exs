@@ -7,9 +7,20 @@ defmodule RedisUniqueQueue.Mixfile do
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     package: package,
+     homepage_url: "https://hexdocs.pm/redis_unique_queue",
+     source_url: "https://github.com/mvalitov/elixir-redis-unique-queue",
+     description: "A unique FIFO queue with atomic operations built on top of Redis.",
      deps: deps()]
   end
 
+  def package do
+    [name: :redis_unique_queue,
+     files: ["lib", "mix.exs"],
+     maintainers: ["Marsel Valitov"],
+     licenses: ["MIT"],
+     links: %{"Github" => "https://github.com/mvalitov/elixir-redis-unique-queue"}]
+  end
   # Configuration for the OTP application
   #
   # Type "mix help compile.app" for more information
