@@ -19,7 +19,6 @@ be found at [https://hexdocs.pm/redis_unique_queue](https://hexdocs.pm/redis_uni
 
 ## Usage
 
-___
 
 Queue creation
 
