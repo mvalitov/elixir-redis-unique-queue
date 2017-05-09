@@ -9,9 +9,18 @@ defmodule RedisUniqueQueue do
 
   ## Examples
 
-      iex> queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
-      %RedisUniqueQueue.UniqueQueue{conn: #PID<0.177.0>, name: "test_queue",
-       options: %{host: "0.0.0.0", port: 6379}}
+  * with options(redis host and port)
+
+          iex> queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+          %RedisUniqueQueue.UniqueQueue{conn: #PID<0.177.0>, name: "test_queue",
+          options: %{host: "0.0.0.0", port: 6379}}
+
+  * with Redix connection
+
+          iex> {:ok, conn} = Redix.start_link(host: "0.0.0.0", port: 6379)
+          {:ok, #PID<0.163.0>}
+          iex> queue = RedisUniqueQueue.create("test_queue", conn)
+          %RedisUniqueQueue.UniqueQueue{conn: #PID<0.163.0>, name: "test_queue", options: %{}}
 
   """
 
@@ -22,6 +31,16 @@ defmodule RedisUniqueQueue do
         {:error, "name is empty"}
       _ ->
         %RedisUniqueQueue.UniqueQueue{name: name, options: options, conn: connect(options)}
+    end
+  end
+
+  @spec create(name :: String.t, conn :: pid()) :: %RedisUniqueQueue.UniqueQueue{}
+  def create(name, conn) when is_bitstring(name) and is_pid(conn) do
+    case String.length(name) do
+      0 ->
+        {:error, "name is empty"}
+      _ ->
+        %RedisUniqueQueue.UniqueQueue{name: name, conn: conn}
     end
   end
 

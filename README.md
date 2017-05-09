@@ -17,9 +17,15 @@ Documentation [https://hexdocs.pm/redis_unique_queue](https://hexdocs.pm/redis_u
 ## Usage
 
 
-Queue creation
+Queue creation:
+  * with options(redis host and port)
 
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+        queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+
+  * with Redix connection
+
+        {:ok, conn} = Redix.start_link(host: "0.0.0.0", port: 6379)
+        queue = RedisUniqueQueue.create("test_queue", conn)
 
 Push data to the queue
 

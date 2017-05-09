@@ -7,7 +7,7 @@ defmodule RedisUniqueQueue.Mixfile do
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     package: package,
+     package: package(),
      homepage_url: "https://hexdocs.pm/redis_unique_queue",
      source_url: "https://github.com/mvalitov/elixir-redis-unique-queue",
      description: "A unique FIFO queue with atomic operations built on top of Redis.",
