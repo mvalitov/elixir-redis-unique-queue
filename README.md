@@ -8,7 +8,7 @@ Add `redis_unique_queue` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:redis_unique_queue, "~> 0.1.1"}]
+  [{:redis_unique_queue, "~> 0.1.2"}]
 end
 ```
 
@@ -20,12 +20,12 @@ Documentation [https://hexdocs.pm/redis_unique_queue](https://hexdocs.pm/redis_u
 Queue creation:
   * with options(redis host and port)
 
-        queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+        {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
 
   * with Redix connection
 
         {:ok, conn} = Redix.start_link(host: "0.0.0.0", port: 6379)
-        queue = RedisUniqueQueue.create("test_queue", conn)
+        {:ok, queue} = RedisUniqueQueue.create("test_queue", conn)
 
 Push data to the queue
 

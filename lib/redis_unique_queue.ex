@@ -11,16 +11,18 @@ defmodule RedisUniqueQueue do
 
   * with options(redis host and port)
 
-          iex> queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+          iex> {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+          {:ok,
           %RedisUniqueQueue.UniqueQueue{conn: #PID<0.177.0>, name: "test_queue",
-          options: %{host: "0.0.0.0", port: 6379}}
+          options: %{host: "0.0.0.0", port: 6379}}}
 
   * with Redix connection
 
           iex> {:ok, conn} = Redix.start_link(host: "0.0.0.0", port: 6379)
           {:ok, #PID<0.163.0>}
-          iex> queue = RedisUniqueQueue.create("test_queue", conn)
-          %RedisUniqueQueue.UniqueQueue{conn: #PID<0.163.0>, name: "test_queue", options: %{}}
+          iex> {:ok, queue} = RedisUniqueQueue.create("test_queue", conn)
+          {:ok,
+          %RedisUniqueQueue.UniqueQueue{conn: #PID<0.163.0>, name: "test_queue", options: %{}}}
 
   """
 
@@ -30,7 +32,7 @@ defmodule RedisUniqueQueue do
       0 ->
         {:error, "name is empty"}
       _ ->
-        %RedisUniqueQueue.UniqueQueue{name: name, options: options, conn: connect(options)}
+        {:ok, %RedisUniqueQueue.UniqueQueue{name: name, options: options, conn: connect(options)}}
     end
   end
 
@@ -40,7 +42,7 @@ defmodule RedisUniqueQueue do
       0 ->
         {:error, "name is empty"}
       _ ->
-        %RedisUniqueQueue.UniqueQueue{name: name, conn: conn}
+        {:ok, %RedisUniqueQueue.UniqueQueue{name: name, conn: conn}}
     end
   end
 
