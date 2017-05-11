@@ -3,23 +3,23 @@ defmodule RedisUniqueQueueTest do
   # doctest RedisUniqueQueue
 
   setup do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.clear(queue)
     {:ok, cleared: true}
   end
 
   test "return argument error if name not is_bitstring" do
-    queue = RedisUniqueQueue.create('qwerty', %{host: "0.0.0.0", port: 6379})
-    assert queue == {:error, "argument error"}
+    {:error, msg} = RedisUniqueQueue.create('qwerty', %{host: "0.0.0.0", port: 6379})
+    assert msg == "argument error"
   end
 
   test "return error if name empty" do
-    queue = RedisUniqueQueue.create("", %{host: "0.0.0.0", port: 6379})
-    assert queue == {:error, "name is empty"}
+    {:error, msg} = RedisUniqueQueue.create("", %{host: "0.0.0.0", port: 6379})
+    assert msg == "name is empty"
   end
 
   test "test push and pop" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push(queue, "test")
     RedisUniqueQueue.push(queue, "test2")
     {:ok, pop} = RedisUniqueQueue.pop(queue)
@@ -27,21 +27,21 @@ defmodule RedisUniqueQueueTest do
   end
 
   test "test push_multi and pop_multi" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push_multi(queue, ["test", "test2"])
     {:ok, res} = RedisUniqueQueue.pop_multi(queue, 2)
     assert res == ["test", "test2"]
   end
 
   test "pop all values" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push_multi(queue, ["test", "test2", "test3"])
     {:ok, res} = RedisUniqueQueue.pop_all(queue)
     assert res == ["test", "test2", "test3"]
   end
 
   test "get front and back value" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push_multi(queue, ["test", "test2", "test3"])
     {:ok, front} = RedisUniqueQueue.front(queue)
     {:ok, back} = RedisUniqueQueue.back(queue)
@@ -49,7 +49,7 @@ defmodule RedisUniqueQueueTest do
   end
 
   test "test unique and size" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push(queue, "test")
     RedisUniqueQueue.push(queue, "test")
     {:ok, size} = RedisUniqueQueue.size(queue)
@@ -57,7 +57,7 @@ defmodule RedisUniqueQueueTest do
   end
 
   test "test remove and remove by index" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push_multi(queue, ["test", "test2", "test3"])
     RedisUniqueQueue.remove(queue, "test2")
     {:ok, remove} = RedisUniqueQueue.all(queue)
@@ -67,7 +67,7 @@ defmodule RedisUniqueQueueTest do
   end
 
   test "test include?" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push_multi(queue, ["test", "test2", "test3"])
     {:ok, tr} = RedisUniqueQueue.include?(queue, "test2")
     {:ok, fl} = RedisUniqueQueue.include?(queue, "no")
@@ -75,14 +75,14 @@ defmodule RedisUniqueQueueTest do
   end
 
   test "test peek" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push_multi(queue, ["test", "test2", "test3"])
     {:ok, res} = RedisUniqueQueue.peek(queue, 1, 2)
     assert res == ["test2", "test3"]
   end
 
   test "test expire" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push_multi(queue, ["test", "test2", "test3"])
     {:ok, size} = RedisUniqueQueue.size(queue)
     RedisUniqueQueue.expire(queue, 1)
@@ -92,7 +92,7 @@ defmodule RedisUniqueQueueTest do
   end
 
   test "test queue clear" do
-    queue = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
+    {:ok, queue} = RedisUniqueQueue.create("test_queue", %{host: "0.0.0.0", port: 6379})
     RedisUniqueQueue.push(queue, "test")
     {:ok, size} = RedisUniqueQueue.size(queue)
     RedisUniqueQueue.clear(queue)
