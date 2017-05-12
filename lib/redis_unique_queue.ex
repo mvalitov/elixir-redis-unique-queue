@@ -303,7 +303,7 @@ defmodule RedisUniqueQueue do
   end
 
   defp time_now() do
-    DateTime.utc_now() |> DateTime.to_unix(:microsecond)
+    (DateTime.utc_now() |> DateTime.to_unix(:microsecond))/1_000_000
   end
 
   defp atomic_pop_script(name, min_score, max_score) do
