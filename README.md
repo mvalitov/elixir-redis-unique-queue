@@ -8,7 +8,7 @@ Add `redis_unique_queue` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:redis_unique_queue, "~> 0.1.4"}]
+  [{:redis_unique_queue, "~> 0.1.5"}]
 end
 ```
 
