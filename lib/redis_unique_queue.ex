@@ -1,4 +1,5 @@
 defmodule RedisUniqueQueue do
+  @scripts_queue Application.get_env(:redis_unique_queue, :scripts_set_name)
   @moduledoc """
   Is the elixir-implementation of ruby-gem [ruby-redis-unique-queue](https://github.com/MishaConway/ruby-redis-unique-queue)
 
@@ -32,7 +33,8 @@ defmodule RedisUniqueQueue do
       0 ->
         {:error, "name is empty"}
       _ ->
-        {:ok, %RedisUniqueQueue.UniqueQueue{name: name, options: options, conn: connect(options)}}
+        conn = connect(options)
+        {:ok, %RedisUniqueQueue.UniqueQueue{name: name, options: options, conn: conn, scripts: load_scripts(conn)}}
     end
   end
 
@@ -42,12 +44,37 @@ defmodule RedisUniqueQueue do
       0 ->
         {:error, "name is empty"}
       _ ->
-        {:ok, %RedisUniqueQueue.UniqueQueue{name: name, conn: conn}}
+        {:ok, %RedisUniqueQueue.UniqueQueue{name: name, conn: conn, scripts: load_scripts(conn)}}
     end
   end
 
   def create(_name, _options) do
     {:error, "argument error"}
+  end
+
+  def load_scripts(conn) do
+    scripts = %{"atomic_pop_script" => atomic_pop_script(), "atomic_pop_all_script" => atomic_pop_all_script(), "atomic_pop_multi_script" => atomic_pop_multi_script()}
+    shas = Redix.command!(conn, ["HMGET", @scripts_queue] ++ Map.keys(scripts))
+    case Enum.any?(shas, &(is_nil(&1))) do
+      true ->
+        Enum.reduce(scripts, %{}, fn({name, script}, acc) ->
+          sha = Redix.command!(conn, ["SCRIPT", "LOAD", script])
+          Redix.command!(conn, ["HSET", @scripts_queue, name, sha])
+          Map.put(acc, name, sha)
+        end)
+      false ->
+        Enum.reduce(scripts, %{}, fn({name, script}, acc) ->
+          sha = Redix.command!(conn, ["HGET", @scripts_queue, name])
+          new_sha = case Redix.command!(conn, ["SCRIPT", "EXISTS", sha]) do
+            [1] -> sha
+            [0] ->
+              sha = Redix.command!(conn, ["SCRIPT", "LOAD", script])
+              Redix.command!(conn, ["HSET", @scripts_queue, name, sha])
+          end
+          Map.put(acc, name, new_sha)
+        end)
+    end
+    # {:ok, sha} = Redix.command(c, ["SCRIPT", "LOAD", script])
   end
 
   @doc """
@@ -103,7 +130,7 @@ defmodule RedisUniqueQueue do
 
   @spec pop(queue :: %RedisUniqueQueue.UniqueQueue{}) :: {atom(), []}
   def pop(queue) do
-    Redix.command(queue.conn, ["EVAL", atomic_pop_script(queue.name, 0, time_now()), 0])
+    Redix.command(queue.conn, ["EVALSHA", queue.scripts["atomic_pop_script"], 0, queue.name, 0, time_now()])
   end
 
   @doc """
@@ -118,7 +145,7 @@ defmodule RedisUniqueQueue do
 
   @spec pop_all(queue :: %RedisUniqueQueue.UniqueQueue{}) :: {atom(), []}
   def pop_all(queue) do
-    Redix.command(queue.conn, ["EVAL", atomic_pop_all_script(queue.name), 0])
+    Redix.command(queue.conn, ["EVALSHA", queue.scripts["atomic_pop_all_script"], 0, queue.name])
   end
 
   @doc """
@@ -133,7 +160,7 @@ defmodule RedisUniqueQueue do
 
   @spec pop_multi(queue :: %RedisUniqueQueue.UniqueQueue{}, amount :: non_neg_integer()) :: {atom(), []}
   def pop_multi(queue, amount) do
-    Redix.command(queue.conn, ["EVAL", atomic_pop_multi_script(queue.name, amount), 0])
+    Redix.command(queue.conn, ["EVALSHA", queue.scripts["atomic_pop_multi_script"], 0, queue.name, amount])
   end
 
   @doc """
@@ -306,10 +333,10 @@ defmodule RedisUniqueQueue do
     (DateTime.utc_now() |> DateTime.to_unix(:microsecond))/1_000_000
   end
 
-  defp atomic_pop_script(name, min_score, max_score) do
-    "local name = '#{name}'
-    local min_score = #{min_score}
-    local max_score = #{max_score}
+  defp atomic_pop_script() do
+    "local name = ARGV[1]
+    local min_score = ARGV[2]
+    local max_score = ARGV[3]
 
     local value = redis.call('ZRANGEBYSCORE', name, min_score, max_score, 'LIMIT', '0', '1')
 
@@ -324,8 +351,8 @@ defmodule RedisUniqueQueue do
     return value"
   end
 
-  defp atomic_pop_all_script(name) do
-    "local name = '#{name}'
+  defp atomic_pop_all_script() do
+    "local name = ARGV[1]
 
     local size = redis.call('ZCARD', name)
 
@@ -340,9 +367,9 @@ defmodule RedisUniqueQueue do
     return values"
   end
 
-  defp atomic_pop_multi_script(name, amount) do
-    "local name = '#{name}'
-    local count = #{amount}
+  defp atomic_pop_multi_script() do
+    "local name = ARGV[1]
+    local count = ARGV[2]
 
     local values = redis.call('ZRANGE', name, 0, count-1)
 

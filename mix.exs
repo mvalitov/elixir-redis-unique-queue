@@ -3,8 +3,8 @@ defmodule RedisUniqueQueue.Mixfile do
 
   def project do
     [app: :redis_unique_queue,
-     version: "0.1.4",
-     elixir: "~> 1.4",
+     version: "0.1.5",
+     elixir: "~> 1.6",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      package: package(),
